@@ -38,3 +38,5 @@ nosetests.xml
 # Data files
 ClassifyMalware/test
 ClassifyMalware/train
+ClassifyMalware/test/*
+ClassifyMalware/train/*
