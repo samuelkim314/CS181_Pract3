@@ -40,3 +40,5 @@ ClassifyMalware/test
 ClassifyMalware/train
 ClassifyMalware/test/*
 ClassifyMalware/train/*
+ClassifyMalware/Output
+ClassifyMalware/Output/*
