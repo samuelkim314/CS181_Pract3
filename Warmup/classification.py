@@ -37,19 +37,20 @@ def basisNone(x):
 """ Calculates posterior probabilities,
 y_k(phi)=exp(a_k)/Sum_j(exp(a_j))
 where a_k = w_k * phi
-TODO: Vectorize
+DONE VECTORISING
 """
 def y(w, phi):
-    # array of exp(a_k)
-    expA = np.empty(len(w))
-    #array of y_k(phi)
-    y = np.empty(len(w))
-    #Calculates exp(a_k)
-    for k in range(len(w)):
-        expA[k] = math.exp(np.dot(w[k],phi))
-    sum = np.sum(expA)
-    for k in range(len(w)):
-        y[k] = math.exp(expA[k]) / sum
+    # NxK
+    size = (phi.shape[0], w.shape[0])
+
+    #array of y_k(phi) for each n
+    y = np.empty(shape)
+    # NxK array of exp(a_k) for each n
+    expA = np.exp(np.inner(phi,w))
+    # N array of Sum_j(exp(a_j)) for each n
+    sums = np.sum(expA, axis=1)
+    y = expA / sums
+
     return y
 
 """Calculates the Hessian matrix
