@@ -15,20 +15,29 @@ def importFruitData(filename="fruit.csv"):
 
     return np.array(xs), np.array(fruit)
 
+"""
+N: # of inputs
+M: # of features
+K: # of classes
+w (KxM): w_km is weights for kth class, mth feature
+y (NxK): y_nk is posterior probability for nth input, kth class
+phi (NxM): phi_nm is basis function for nth input, mth feature
+t (N): output for nth input
+"""
 def logRegress(xs, y):
     pass
 
+"""returns phi
+no function is applied, but 1 is appended as a feature for the bias
+"""
 def basisNone(x):
-    ones = np.ones(x.shape[1])
-    phi = np.insert(x, 0, ones)
+    phi = np.insert(x, 0, 1, axis=1)
     return phi
-
-def grad(ys, ts, phi):
-    pass
 
 """ Calculates posterior probabilities,
 y_k(phi)=exp(a_k)/Sum_j(exp(a_j))
 where a_k = w_k * phi
+TODO: Vectorize
 """
 def y(w, phi):
     # array of exp(a_k)
@@ -43,6 +52,8 @@ def y(w, phi):
         y[k] = math.exp(expA[k]) / sum
     return y
 
+"""Calculates the Hessian matrix
+"""
 def hessMat(y, phi):
     m = y.shape[1]
     hess = np.empty((m,m))
@@ -55,6 +66,8 @@ def hessMat(y, phi):
 
     return hess
 
+"""Gradient of the error function with respect to each of w_j
+"""
 def gradE(y, t, phi):
     grad = np.empty(y.shape[1])
     for j in range(y.shape[1]):
@@ -63,5 +76,7 @@ def gradE(y, t, phi):
             grad[j] = sum(temp[n])
     return grad
 
+"""Updates w based on the Newton-Raphson iterative optimization (IRLS)
+"""
 def newW(w, y, t, phi):
     return w - np.dot(np.linalg.inv(hessMat(y, phi)), gradE(y, t, phi))
