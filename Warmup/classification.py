@@ -24,8 +24,16 @@ y (NxK): y_nk is posterior probability for nth input, kth class
 phi (NxM): phi_nm is basis function for nth input, mth feature
 t (N): output for nth input
 """
-def logRegress(xs, y):
-    pass
+def logRegress(phi, t):
+    while True:
+        y = calcY(w,phi)
+        hessMat = calcHessMat(y, phi)
+        grad = calcGradE(y, t, phi)
+        wNew = updateW(w, y, t, phi)
+        if converged(w, wNew):
+            break;
+        w = wNew
+    return wNew
 
 """returns phi
 no function is applied, but 1 is appended as a feature for the bias
@@ -34,12 +42,22 @@ def basisNone(x):
     phi = np.insert(x, 0, 1, axis=1)
     return phi
 
+"""converts t into a numpy array
+example: t=[0,2,1], k is number of classes
+output: tNew = [[1,0,0],[0,0,1],[0,1,0]
+"""
+def vectT(t, k):
+    tNew = np.zeros((len(t), k))
+    for m in range(len(t)):
+        tNew[t] = 1
+    return tNew
+
 """ Calculates posterior probabilities,
 y_k(phi)=exp(a_k)/Sum_j(exp(a_j))
 where a_k = w_k * phi
 DONE VECTORISING
 """
-def y(w, phi):
+def calcY(w, phi):
     # NxK
     size = (phi.shape[0], w.shape[0])
 
@@ -55,7 +73,7 @@ def y(w, phi):
 
 """Calculates the Hessian matrix
 """
-def hessMat(y, phi):
+def calcHessMat(y, phi):
     m = y.shape[1]
     hess = np.empty((m,m))
     i = np.identity(m)
@@ -69,7 +87,7 @@ def hessMat(y, phi):
 
 """Gradient of the error function with respect to each of w_j
 """
-def gradE(y, t, phi):
+def calcGradE(y, t, phi):
     grad = np.empty(y.shape[1])
     for j in range(y.shape[1]):
         for n in range(len(phi)):
@@ -79,5 +97,9 @@ def gradE(y, t, phi):
 
 """Updates w based on the Newton-Raphson iterative optimization (IRLS)
 """
-def newW(w, y, t, phi):
+def updateW(w, y, t, phi):
     return w - np.dot(np.linalg.inv(hessMat(y, phi)), gradE(y, t, phi))
+
+"""TODO"""
+def converged(wOld, wNew):
+    return True
