@@ -35,7 +35,7 @@ def covariance(x, mu):
     x:      vector with dimension N x (M - 1)
     mu:     vector with dimension K x (M - 1)
 
-    S:      matrix 
+    S:      matrix
     """
 
 
@@ -46,7 +46,7 @@ Multiclass logistic regression
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 def logisticRegression(x, t, K, alpha=0.01, epsilon=0.001, steps=500):
     """
-    Return  w:      vector with dimension M(K - 1) 
+    Return  w:      vector with dimension M(K - 1)
     """
     #initialize w, phi, _t
     phi = basisNone(x)
@@ -74,7 +74,7 @@ def logisticRegression(x, t, K, alpha=0.01, epsilon=0.001, steps=500):
 
 def y(w, phi):
     """
-    w:      vector with dimension M(K - 1) 
+    w:      vector with dimension M(K - 1)
     phi:    matrix with dimension N(K - 1) x M(K - 1)
 
     y:      vector with dimension N(K - 1)
@@ -125,6 +125,7 @@ w (KxM): w_km is weights for kth class, mth feature
 y (NxK): y_nk is posterior probability for nth input, kth class
 phi (NxM): phi_nm is basis function for nth input, mth feature
 t (N): output for nth input
+Author: Sam Kim
 """
 def logRegress(phi, t):
     while True:
@@ -143,7 +144,7 @@ no function is applied, but 1 is appended as a feature for the bias
 def basisNone(x):
     ones = np.ones(x.shape[0])
     phi = np.insert(x, 0, ones, axis=1)
-    return phi    
+    return phi
 
 
 """converts t into a numpy array
@@ -162,18 +163,6 @@ Calculates posterior probabilities,
 y_k(phi)=exp(a_k)/Sum_j(exp(a_j))
 where a_k = w_k * phi
 
-def y(w, phi):
-    # array of exp(a_k)
-    expA = np.empty(len(w))
-    #array of y_k(phi)
-    y = np.empty(len(w))
-    #Calculates exp(a_k)
-    for k in range(len(w)):
-        expA[k] = math.exp(np.dot(w[k],phi))
-    sum = np.sum(expA)
-    for k in range(len(w)):
-        y[k] = math.exp(expA[k]) / sum
-=======
 DONE VECTORISING
 """
 def calcY(w, phi):
@@ -187,7 +176,6 @@ def calcY(w, phi):
     # N array of Sum_j(exp(a_j)) for each n
     sums = np.sum(expA, axis=1)
     y = expA / sums
-
 
     return y
 
