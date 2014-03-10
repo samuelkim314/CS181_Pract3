@@ -59,10 +59,10 @@ DONE VECTORISING
 """
 def calcY(w, phi):
     # NxK
-    size = (phi.shape[0], w.shape[0])
-
+    #size = (phi.shape[0], w.shape[0])
     #array of y_k(phi) for each n
-    y = np.empty(shape)
+    #y = np.empty(shape)
+
     # NxK array of exp(a_k) for each n
     expA = np.exp(np.inner(phi,w))
     # N array of Sum_j(exp(a_j)) for each n
