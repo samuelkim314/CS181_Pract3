@@ -128,22 +128,25 @@ t (N): output for nth input
 Author: Sam Kim
 """
 def logRegress(phi, t):
+    w = initW(3, phi.shape[1])
     while True:
         y = calcY(w,phi)
         hessMat = calcHessMat(y, phi)
         grad = calcGradE(y, t, phi)
-        wNew = updateW(w, y, t, phi)
+        wNew = updateW(w, y, t, phi, hessMat, grad)
         if converged(w, wNew):
             break;
         w = wNew
     return wNew
 
+def initW(k, m):
+    return np.ones((k,m))
+
 """returns phi
 no function is applied, but 1 is appended as a feature for the bias
 """
 def basisNone(x):
-    ones = np.ones(x.shape[0])
-    phi = np.insert(x, 0, ones, axis=1)
+    phi = np.insert(x, 0, 1, axis=1)
     return phi
 
 
@@ -151,10 +154,12 @@ def basisNone(x):
 example: t=[0,2,1], k is number of classes
 output: tNew = [[1,0,0],[0,0,1],[0,1,0]
 """
-def vectT(t, k):
+def vectT(t, k=None):
+    if k==None:
+        k = np.amax(t)
     tNew = np.zeros((len(t), k))
     for m in range(len(t)):
-        tNew[t] = 1
+        tNew[m,t[m]-1] = 1
     return tNew
 
 
@@ -166,51 +171,49 @@ where a_k = w_k * phi
 DONE VECTORISING
 """
 def calcY(w, phi):
-    # NxK
-    #size = (phi.shape[0], w.shape[0])
-    #array of y_k(phi) for each n
-    #y = np.empty(shape)
-
     # NxK array of exp(a_k) for each n
     expA = np.exp(np.inner(phi,w))
     # N array of Sum_j(exp(a_j)) for each n
     sums = np.sum(expA, axis=1)
-    y = expA / sums
+    y = expA / sums[:, np.newaxis]
 
     return y
 
 """Calculates the Hessian matrix
+TODO: Vectorize
 """
 def calcHessMat(y, phi):
-    m = y.shape[1]
-    hess = np.empty((m,m))
+    m = phi.shape[1]
+    N = len(y)
+    K = y.shape[1]
+    hess = np.empty((K,K,m,m))
     i = np.identity(m)
+    temp = np.empty((N,K,K))
     for k in range(m):
         for j in range(m):
             for n in range(len(phi)):
                 temp[n] = y[n,k]*(i[k,j]-y[n,j])*np.outer(phi[n],phi[n])
-                hess[j,k] = np.sum(temp)
+            hess[j,k] = np.sum(temp, axis=0)
 
     return hess
 
 """Gradient of the error function with respect to each of w_j
 """
 def calcGradE(y, t, phi):
-    grad = np.empty(y.shape[1])
+    """grad = np.empty(y.shape[1])
     for j in range(y.shape[1]):
         for n in range(len(phi)):
             temp[n] = (y[n,j] - t[n,j])*phi[n]
-            grad[j] = sum(temp[n])
-    return grad
+            grad[j] = sum(temp[n])"""
 
-def newW(w, y, t, phi):
-    return w - np.dot(np.linalg.inv(hessMat(y, phi)), gradE(y, t, phi))
+    grad = np.sum((y - t)[:,:,np.newaxis]*phi[:,np.newaxis,:], axis=0)
+    return grad
 
 """Updates w based on the Newton-Raphson iterative optimization (IRLS)
 """
-def updateW(w, y, t, phi):
-    return w - np.dot(np.linalg.inv(hessMat(y, phi)), gradE(y, t, phi))
+def updateW(w, y, t, phi, hessMat, gradE):
+    return w - np.dot(np.linalg.tensorinv(hessMat), gradE)
 
 """TODO"""
-def converged(wOld, wNew):
-    return True
+def converged(wOld, wNew, rtol=1e-03, atol=1e-03):
+    return allclose(wOld, wNew, rtol, atol)
