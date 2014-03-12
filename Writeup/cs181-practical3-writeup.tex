@@ -1,0 +1,65 @@
+\documentclass[11pt]{amsart}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ...
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{commath}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+% Declare commands
+\newcommand{\mat}[1]{\mathbf{#1}}
+
+\title{CS 181 -- Practical 3}
+\author{Casey Grun, Sam Kim, Rhed Shi}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+
+% -----------------------------------------------------------------------------
+\section{Warmup}
+
+
+% -----------------------------------------------------------------------------
+\section{Classification}
+
+Our challenge was to classify a set of programs, based on traces of their system calls, as either a type of malware or a non-malicious program. Given an $N \times D$ matrix $\mat{X}$ representing the programs, along with a $N$-dimensional vector $\vec{t}$ of training labels, produce a function 
+$$y : \mat{X'} \mapsto \vec{t'}$$.
+That is, a function which could produce labels $\vec{t'}$ for some matrix $\mat{X'}$. There were two parts to this challenge: determining the \emph{feature functions} to generate rows of the matrix $\mat{X}$ based on the system calls for each malware program, and determining what classification algorithm to use to generate the function $y$.
+
+\subsection{Feature Functions}
+
+We evaluated a number of feature functions:
+\begin{description}
+  \item[System call counts]
+  \item[$n$-grams]
+  \item[DLLs loaded]
+  \item[Registry keys]
+\end{description}
+
+\subsection{Classification Methods}
+
+
+
+% -----------------------------------------------------------------------------
+\section{Conclusion}
+
+
+% -----------------------------------------------------------------------------
+\begingroup
+\begin{thebibliography}{9}
+
+\bibitem{LSMR}
+Fong, David Chin-Lung, and Michael Saunders. "LSMR: An iterative algorithm for sparse least-squares problems."
+\emph{SIAM Journal on Scientific Computing} 33.5 (2011): 2950-2971
+
+\end{thebibliography}
+\endgroup
+
+\end{document}
