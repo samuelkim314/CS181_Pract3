@@ -124,11 +124,11 @@ K: # of classes
 w (KxM): w_km is weights for kth class, mth feature
 y (NxK): y_nk is posterior probability for nth input, kth class
 phi (NxM): phi_nm is basis function for nth input, mth feature
-t (N): output for nth input
+t (NxK): output for nth input, kth class
 Author: Sam Kim
 """
 def logRegress(phi, t):
-    w = initW(3, phi.shape[1])
+    w = initW(t.shape[1], phi.shape[1])
     while True:
         y = calcY(w,phi)
         hessMat = calcHessMat(y, phi)
@@ -140,13 +140,14 @@ def logRegress(phi, t):
     return wNew
 
 def initW(k, m):
-    return np.ones((k,m))
+    #return np.zeros((k,m), dtype=float)
+    return np.random.rand(k,m)
 
 """returns phi
 no function is applied, but 1 is appended as a feature for the bias
 """
 def basisNone(x):
-    phi = np.insert(x, 0, 1, axis=1)
+    phi = np.insert(x, 0, 1.0, axis=1)
     return phi
 
 
@@ -159,7 +160,7 @@ def vectT(t, k=None):
         k = np.amax(t)
     tNew = np.zeros((len(t), k))
     for m in range(len(t)):
-        tNew[m,t[m]-1] = 1
+        tNew[m,t[m]-1] = 1.0
     return tNew
 
 
@@ -180,40 +181,37 @@ def calcY(w, phi):
     return y
 
 """Calculates the Hessian matrix
+(K*M)x(K*M) where block j,k of size MxM given by sum_n...
 TODO: Vectorize
 """
 def calcHessMat(y, phi):
     m = phi.shape[1]
-    N = len(y)
+    N = y.shape[0]
     K = y.shape[1]
     hess = np.empty((K,K,m,m))
-    i = np.identity(m)
-    temp = np.empty((N,K,K))
-    for k in range(m):
-        for j in range(m):
-            for n in range(len(phi)):
+    i = np.identity(K)
+    temp = np.empty((N,m,m))
+    for k in range(K):
+        for j in range(K):
+            for n in range(N):
                 temp[n] = y[n,k]*(i[k,j]-y[n,j])*np.outer(phi[n],phi[n])
             hess[j,k] = np.sum(temp, axis=0)
 
+    hess = hess.swapaxes(1, 2).reshape(K*m, K*m)
     return hess
 
 """Gradient of the error function with respect to each of w_j
+KxM
 """
 def calcGradE(y, t, phi):
-    """grad = np.empty(y.shape[1])
-    for j in range(y.shape[1]):
-        for n in range(len(phi)):
-            temp[n] = (y[n,j] - t[n,j])*phi[n]
-            grad[j] = sum(temp[n])"""
-
     grad = np.sum((y - t)[:,:,np.newaxis]*phi[:,np.newaxis,:], axis=0)
     return grad
 
 """Updates w based on the Newton-Raphson iterative optimization (IRLS)
 """
 def updateW(w, y, t, phi, hessMat, gradE):
-    return w - np.dot(np.linalg.tensorinv(hessMat), gradE)
+    return w - np.dot(np.linalg.pinv(hessMat), gradE)
 
-"""TODO"""
+"""Compares two vectors and tests if they are close enough to each other"""
 def converged(wOld, wNew, rtol=1e-03, atol=1e-03):
     return allclose(wOld, wNew, rtol, atol)
