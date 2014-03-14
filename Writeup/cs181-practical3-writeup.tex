@@ -44,8 +44,31 @@ We evaluated a number of feature functions:
 \end{description}
 
 \subsection{Classification Methods}
+We evaluated a number of classification learning algorithms, as implemented by the scikit-learn Python library. These include:
+\begin{description}
+  \item[One-vs-rest] As discussed in the textbook, this algorithm fits one classifier per class to classify if a point is in a class $C_k$ or not.
+  \item[One-Vs-One] This algorithm introduces a discriminant function for every pair of classes, where each point is classified according to a majority of decisions among the discriminant functions.
+  \item[Logistic regression] This algorithm minimizes an error based on the training set to optimize the parameters for the likelihood function.
+  \item[Decision trees] This algorithm goes down a tree of binary nodes in which the inputs are used to determine which path to go down, which ultimately assign probabilities to the target variable.
+  \item[Forests of randomized trees] Related to the decision trees, this algorithm uses a set of trees, where each tree is built using random decisions. Whereas a decision tree will use the best split among all the features for each node, the random tree will pick the best split from a random subset of features. The trees are built independently and then their results are averaged to make predictions. This results in the bias increasing (due to not picking the best split) but the variance decreasing (due to averaging) which offsets the increase in bias.
+  \item[Forests of extremely randomized trees] This is similar to the forests of randomized trees algorithm, except that splits are computed slightly differently in building the random trees. In addition to using a random subset of features for each node, instead of picking the best feature, thresholds are drawn randomly for each feature and these thresholds are picked as the splitting rules. This results in an even higher bias but lower variance.
+\end{description}
 
+We evaluated these learning algorithms based on the extracted features of system call counts and system call bigrams, and using cross-validation methods to withhold 10\% of the data over 10 trials and averaging the percent errors over the predictions on the withheld data. The results are summarized in the table below:\\
 
+\begin{tabular}{l | r | l}
+Classification algorithm & \% error & Standard deviation \\
+\hline
+One-vs-rest & 12.7 & 2.4 \\
+One-vs-one & 12.9 & 1.4 \\
+Logistic regression & & \\
+Decision tree & 10.9 & 1.3 \\
+Random trees & 10.4 & 1.2 \\
+Extremely random trees & 9.7 & 1.6 \\
+\end{tabular}
+\\
+\\
+Additionally, on Kaggle, the one-vs-rest, decision tree, and extremely random trees classification algorithms using the system call counts and system call bigrams reached accuracies of 68.5\%, 79.1\%, and 81.0\%, respectively.
 
 % -----------------------------------------------------------------------------
 \section{Conclusion}
@@ -55,9 +78,9 @@ We evaluated a number of feature functions:
 \begingroup
 \begin{thebibliography}{9}
 
-\bibitem{LSMR}
-Fong, David Chin-Lung, and Michael Saunders. "LSMR: An iterative algorithm for sparse least-squares problems."
-\emph{SIAM Journal on Scientific Computing} 33.5 (2011): 2950-2971
+%\bibitem{LSMR}
+%Fong, David Chin-Lung, and Michael Saunders. "LSMR: An iterative algorithm for sparse least-squares problems."
+%\emph{SIAM Journal on Scientific Computing} 33.5 (2011): 2950-2971
 
 \end{thebibliography}
 \endgroup
