@@ -8,6 +8,22 @@ import scipy.linalg
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 Generative classifier with Bayesian class-conditional densities
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+def generativeClassifierWithBayesian(x, t, K):
+    N, mu = mean(x, t, K)
+    S = covariance(x, mu, N)
+
+    w = []
+    w_o = np.random.random(len(N))
+    for k in range(len(N)):
+        w_k = scipy.linalg.inv(S[k]).dot(mu[k])
+        w.append(w_k)
+    for _ in range(50):
+        for k in range(len(N)):
+            w_o[k] = -1/2 * mu[k].dot(scipy.linalg.inv(S[k])).dot(mu[k]) + w_o[k]
+            print w_o[k]
+    w = np.insert(w, 0, w_o, axis=1)
+    return w
+
 def class_split(x):
     """
     return a list of numpy arrays with datapoints belonging only to that class
@@ -30,15 +46,24 @@ def mean(x, t, K):
         N[k] += 1
     return N, np.divide(mu, N[:,None])
 
-def covariance(x, mu):
+def covariance(x, mu, N):
     """
     x:      vector with dimension N x (M - 1)
     mu:     vector with dimension K x (M - 1)
 
-    S:      matrix
+    S:      list of K matrices with dimension (M - 1) x (M - 1)
     """
-
-
+    S = []
+    M = x.shape[1] + 1
+    x_k = class_split(x)
+    i = 0
+    for k in x_k:
+        S_k = np.zeros((M - 1, M - 1))
+        for x in k:
+            S_k = S_k + (x - mu[i])[:,None] * (x - mu[i])
+        S.append(S_k)
+        i += 1
+    return S
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -46,16 +71,17 @@ Multiclass logistic regression
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 def logisticRegression(x, t, K, alpha=0.01, epsilon=0.001, steps=500):
     """
-    Return  w:      vector with dimension M(K - 1)
+    Return  w:      vector with dimension M(K)
     """
     #initialize w, phi, _t
     phi = basisNone(x)
-    for _ in range(K - 2):
+    M = phi.shape[1]
+    for _ in range(K - 1):
         phi = scipy.linalg.block_diag(phi, basisNone(x))
-    w = np.zeros(phi.shape[1])
+    w = np.random.random(phi.shape[1])
 
     _t = np.empty(0)
-    for k in range(K - 1):
+    for k in range(K):
         _t = np.append(_t, ma.masked_not_equal(ma.masked_not_equal(t, k + 1).filled(0), 0).filled(1))
 
     error = 0
@@ -63,9 +89,9 @@ def logisticRegression(x, t, K, alpha=0.01, epsilon=0.001, steps=500):
     #gradient descent on error function
     for step in range(steps):
         previous = error
-        _y = y(w, phi)
+        _y = y(w.reshape((K, M)), basisNone(x))
         w = w_new(w, _y, _t, phi, K, alpha)
-        error = np.dot(-_t, np.array(map(math.log, _y)))
+        error = np.dot(-_t, np.array(map(math.log, abs(_y))))
         de = error - previous
         if abs(de) < epsilon:
             print "Finished after step %d with delta-error = %f error = %f" % (step, de, error)
@@ -74,40 +100,40 @@ def logisticRegression(x, t, K, alpha=0.01, epsilon=0.001, steps=500):
 
 def y(w, phi):
     """
-    w:      vector with dimension M(K - 1)
-    phi:    matrix with dimension N(K - 1) x M(K - 1)
+    w:      matrix with dimension K x M
+    phi:    matrix with dimension N x M
 
-    y:      vector with dimension N(K - 1)
+    y:      vector with dimension N(K)
     """
-    expA = np.array(map(math.exp, np.dot(phi, w)))
-    y = expA / expA.sum()
-    return y
+    expA = np.power(math.e, np.dot(w, np.transpose(phi)))
+    y = expA / expA.sum(axis=0)
+    return y.flatten()
 
 def grad_E(y, t, phi):
     """
-    y:      vector with dimension N(K - 1)
-    t:      vector with dimension N(K - 1)
-    phi:    matrix with dimension N(K - 1) x M(K - 1)
+    y:      vector with dimension N(K)
+    t:      vector with dimension N(K)
+    phi:    matrix with dimension N(K) x M(K)
 
-    grad_E: vector with dimension M(K - 1)
+    grad_E: vector with dimension M(K)
     """
     return np.transpose(phi).dot(y - t)
 
 def Hessian(y, phi, K):
     """
-    y:      vector with dimension N(K - 1)
-    phi:    matrix with dimension N(K - 1) x M(K - 1)
+    y:      vector with dimension N(K)
+    phi:    matrix with dimension N(K) x M(K)
 
-    H:      matrix with dimension M(K - 1) x M(K - 1)
+    H:      matrix with dimension M(K) x M(K)
     """
-    N = len(y) / (K - 1)
+    N = len(y) / K
 
-    #create (K - 1) x (K - 1) blocks of N x N identity matrices as a mask
+    #create K x K blocks of N x N identity matrices as a mask
     i = np.identity(N)
-    for _ in range(K - 2):
+    for _ in range(K - 1):
         i = np.concatenate((i, np.identity(N)), axis=0)
     I = i
-    for _ in range(K - 2):
+    for _ in range(K - 1):
         I = np.concatenate((I, i), axis=1)
     #create R weighting matrix using mask from above
     R = ma.masked_array(y[:,None] * -y + y[:,None] * np.identity(len(y)), mask=1-I).filled(0)
@@ -124,11 +150,9 @@ K: # of classes
 w (KxM): w_km is weights for kth class, mth feature
 y (NxK): y_nk is posterior probability for nth input, kth class
 phi (NxM): phi_nm is basis function for nth input, mth feature
-t (NxK): output for nth input, kth class
-Author: Sam Kim
+t (N): output for nth input
 """
 def logRegress(phi, t):
-    w = initW(t.shape[1], phi.shape[1])
     while True:
         y = calcY(w,phi)
         hessMat = calcHessMat(y, phi)
@@ -139,15 +163,12 @@ def logRegress(phi, t):
         w = wNew
     return wNew
 
-def initW(k, m):
-    #return np.zeros((k,m), dtype=float)
-    return np.random.rand(k,m)
-
 """returns phi
 no function is applied, but 1 is appended as a feature for the bias
 """
 def basisNone(x):
-    phi = np.insert(x, 0, 1.0, axis=1)
+    ones = np.ones(x.shape[0])
+    phi = np.insert(x, 0, ones, axis=1)
     return phi
 
 
@@ -155,12 +176,10 @@ def basisNone(x):
 example: t=[0,2,1], k is number of classes
 output: tNew = [[1,0,0],[0,0,1],[0,1,0]
 """
-def vectT(t, k=None):
-    if k==None:
-        k = np.amax(t)
+def vectT(t, k):
     tNew = np.zeros((len(t), k))
     for m in range(len(t)):
-        tNew[m,t[m]-1] = 1.0
+        tNew[t] = 1
     return tNew
 
 
@@ -169,48 +188,66 @@ Calculates posterior probabilities,
 y_k(phi)=exp(a_k)/Sum_j(exp(a_j))
 where a_k = w_k * phi
 
+def y(w, phi):
+    # array of exp(a_k)
+    expA = np.empty(len(w))
+    #array of y_k(phi)
+    y = np.empty(len(w))
+    #Calculates exp(a_k)
+    for k in range(len(w)):
+        expA[k] = math.exp(np.dot(w[k],phi))
+    sum = np.sum(expA)
+    for k in range(len(w)):
+        y[k] = math.exp(expA[k]) / sum
+=======
 DONE VECTORISING
 """
 def calcY(w, phi):
+    # NxK
+    size = (phi.shape[0], w.shape[0])
+
+    #array of y_k(phi) for each n
+    y = np.empty(shape)
     # NxK array of exp(a_k) for each n
     expA = np.exp(np.inner(phi,w))
     # N array of Sum_j(exp(a_j)) for each n
     sums = np.sum(expA, axis=1)
-    y = expA / sums[:, np.newaxis]
+    y = expA / sums
+
 
     return y
 
 """Calculates the Hessian matrix
-(K*M)x(K*M) where block j,k of size MxM given by sum_n...
-TODO: Vectorize
 """
 def calcHessMat(y, phi):
-    m = phi.shape[1]
-    N = y.shape[0]
-    K = y.shape[1]
-    hess = np.empty((K,K,m,m))
-    i = np.identity(K)
-    temp = np.empty((N,m,m))
-    for k in range(K):
-        for j in range(K):
-            for n in range(N):
+    m = y.shape[1]
+    hess = np.empty((m,m))
+    i = np.identity(m)
+    for k in range(m):
+        for j in range(m):
+            for n in range(len(phi)):
                 temp[n] = y[n,k]*(i[k,j]-y[n,j])*np.outer(phi[n],phi[n])
-            hess[j,k] = np.sum(temp, axis=0)
+                hess[j,k] = np.sum(temp)
 
-    hess = hess.swapaxes(1, 2).reshape(K*m, K*m)
     return hess
 
 """Gradient of the error function with respect to each of w_j
-KxM
 """
 def calcGradE(y, t, phi):
-    grad = np.sum((y - t)[:,:,np.newaxis]*phi[:,np.newaxis,:], axis=0)
+    grad = np.empty(y.shape[1])
+    for j in range(y.shape[1]):
+        for n in range(len(phi)):
+            temp[n] = (y[n,j] - t[n,j])*phi[n]
+            grad[j] = sum(temp[n])
     return grad
+
+def newW(w, y, t, phi):
+    return w - np.dot(np.linalg.inv(hessMat(y, phi)), gradE(y, t, phi))
 
 """Updates w based on the Newton-Raphson iterative optimization (IRLS)
 """
-def updateW(w, y, t, phi, hessMat, gradE):
-    return w - np.dot(np.linalg.pinv(hessMat), gradE)
+def updateW(w, hessMat, gradE):
+    return w - np.dot(np.linalg.inv(hessMat), gradE)
 
 def updateWSimple(w, hessMat, gradE):
     return w - gradE
