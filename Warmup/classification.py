@@ -133,7 +133,7 @@ def logRegress(phi, t):
         y = calcY(w,phi)
         hessMat = calcHessMat(y, phi)
         grad = calcGradE(y, t, phi)
-        wNew = updateW(w, y, t, phi, hessMat, grad)
+        wNew = updateWSimple(w, hessMat, grad)
         if converged(w, wNew):
             break;
         w = wNew
@@ -212,6 +212,9 @@ def calcGradE(y, t, phi):
 def updateW(w, y, t, phi, hessMat, gradE):
     return w - np.dot(np.linalg.pinv(hessMat), gradE)
 
+def updateWSimple(w, hessMat, gradE):
+    return w - gradE
+
 """Compares two vectors and tests if they are close enough to each other"""
 def converged(wOld, wNew, rtol=1e-03, atol=1e-03):
-    return allclose(wOld, wNew, rtol, atol)
+    return np.allclose(wOld, wNew, rtol, atol)
