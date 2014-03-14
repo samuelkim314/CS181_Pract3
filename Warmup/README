@@ -1,0 +1,16 @@
+CS 181 Practical 3
+Sam Kim, Casey Grun, Rhed Shi
+
+To run the logistic regression classification algorithm on this dataset, type:
+
+python main_logRegress.py
+
+After the algorithm finishes, the progam will display the plot of the fruit
+and the classification regions.
+
+To run the the generative classifier algorithm on this dataset, type:
+
+python main_generative.py
+
+After the algorithm finishes, the progam will display the plot of the fruit
+and the classification regions.
