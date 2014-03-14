@@ -19,8 +19,7 @@ def generativeClassifierWithBayesian(x, t, K):
         w.append(w_k)
     for _ in range(50):
         for k in range(len(N)):
-            w_o[k] = -1/2 * mu[k].dot(scipy.linalg.inv(S[k])).dot(mu[k]) + w_o[k]
-            print w_o[k]
+            w_o[k] = -1/2 * mu[k].dot(scipy.linalg.inv(S[k])).dot(mu[k]) #+ w_o[k]
     w = np.insert(w, 0, w_o, axis=1)
     return w
 
