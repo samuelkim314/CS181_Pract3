@@ -250,5 +250,5 @@ def updateWSimple(w, hessMat, gradE):
     return w - gradE
 
 """Compares two vectors and tests if they are close enough to each other"""
-def converged(wOld, wNew, rtol=1e-03, atol=1e-03):
+def converged(wOld, wNew, rtol=1, atol=1e-03):
     return np.allclose(wOld, wNew, rtol, atol)
