@@ -13,13 +13,13 @@ def generativeClassifierWithBayesian(x, t, K):
     S = covariance(x, mu, N)
 
     w = []
-    w_o = np.random.random(len(N))
+    w_o = np.zeros(len(N))
     for k in range(len(N)):
         w_k = scipy.linalg.inv(S[k]).dot(mu[k])
         w.append(w_k)
     for _ in range(50):
         for k in range(len(N)):
-            w_o[k] = -1/2 * mu[k].dot(scipy.linalg.inv(S[k])).dot(mu[k]) #+ w_o[k]
+            w_o[k] = -1/2 * mu[k].dot(scipy.linalg.inv(S[k])).dot(mu[k]) + N[k]/59
     w = np.insert(w, 0, w_o, axis=1)
     return w
 

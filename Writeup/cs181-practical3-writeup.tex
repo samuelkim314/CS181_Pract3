@@ -29,7 +29,51 @@ We attempted to implement multiclass logistic regression and generative classife
 
 $$ \Phi(\bold{x}) = w_0 + w_1 \cdot \bold{x_1} + w_2 \cdot \bold{x_2}  = \bold{w}^T \bold{x} $$
 
+\subsection{Logistic Regression}
 
+We first plotted the lines described by the weights in our logistic regression learning algorithm shown below.
+
+\begin{figure}
+  \includegraphics[width=8cm]{figure_1.png}
+  \caption{Lines described by the weights of the logistic regression algorithm.}
+\end{figure}
+
+\pagebreak
+
+Next, we plotted the coloring of the graph using the maximum $p(C_k)$ for each point in the coordinate space. Admittedly, our algorithm fails to capture the lemons due to some bug in the code. We randomized the guesses for our $\bold{w}$ vector and ran the optimization using the inverse Hessian and gradient of the error function given by
+
+\begin{figure}
+  \includegraphics[width=8cm]{figure_2.png}
+  \caption{Logistic regression with decision boundaries.}
+\end{figure}
+
+\begin{align*}
+\nabla E(\bold{w}) &= \Phi ^ T (\bold{y} - \bold{t}) \\
+\bold{H} &= \Phi ^T \bold{R} \Phi \\
+\end{align*}
+
+\subsection{Generative Classifier with Bayesian Class-Conditional Densities}
+
+We defined the weights of our generative classifier method with Bayesian class-conditional densities as
+
+\begin{align*}
+\bold{w}_k &= \bold{\Sigma}_k ^{-1} \bold{\mu}_k \\
+w_{k0} &= -\frac{1}{2}  \bold{\mu}_k ^ T \bold{\Sigma}_k ^{-1} \bold{\mu}_k + ln(p(C_k)) \\
+\end{align*}
+
+where we have
+
+\begin{align*}
+\bold{\mu}_k &= \frac{1}{N_k} \sum_{n = 1}^{N} t_n \bold{x}_n \\
+\bold{\Sigma}_k &= \frac{1}{N_k} \sum_{n \in C_k} (\bold{x}_n - \mu_k)(\bold{x}_n - \mu_k) ^T \\
+\end{align*}
+
+Our results are shown here in the figure. Although there only appears to be one decision boundary between the apples and oranges, this boundary shows curved features not seen in the logistic regression because of the individual covariances in our weight calculations. 
+
+\begin{figure}
+  \includegraphics[width=8cm]{figure_4.png}
+  \caption{Logistic regression with decision boundaries.}
+\end{figure}
 
 % -----------------------------------------------------------------------------
 \section{Classification}

@@ -11,5 +11,9 @@ xs, fruit = importFruitData()
 w2 = generativeClassifierWithBayesian(xs, fruit, K)
 plotRegression(xs, fruit, w2, y, K)
 
+# w = logRegress(basisNone(xs), vectT(fruit, K))
+# print w
+# plotRegression(xs, fruit, w, y, K)
+
 
 plt.show()
